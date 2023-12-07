@@ -17,13 +17,13 @@ class LSTMGenerator(nn.Module):
                                  num_layers=2,
                                  batch_first = True,
                                  bidirectional = True)
-        self.skip_connection_one = nn.Linear(hidden_size * 2, hidden_size)  
+        self.skip_connection_one = nn.Linear(hidden_size * 2, hidden_size)
         self.lstm_middle = nn.LSTM(input_size=hidden_size,
                                  hidden_size=hidden_size,
                                  num_layers=2,
                                  batch_first = True,
                                  bidirectional = True)
-        self.skip_connection_two = nn.Linear(hidden_size * 2, hidden_size)  
+        self.skip_connection_two = nn.Linear(hidden_size * 2, hidden_size)
         self.lstm_top = nn.LSTM(input_size=hidden_size,
                                  hidden_size=hidden_size,
                                  num_layers=1,
@@ -39,10 +39,10 @@ class LSTMGenerator(nn.Module):
         output_middle, hidden_and_cell_states_middle = self.lstm_middle(skip_out_one, hidden_and_cell_states[1])
         skip_out_two = self.skip_connection_two(output_middle) + inputs
         output_top, hidden_and_cell_states_top = self.lstm_top(skip_out_two, hidden_and_cell_states[2])
-        output = self.final_linear(output_top)
+        logits = self.final_linear(output_top)
         
-        gumbel_noise = -torch.empty_like(output).exponential_().log() * 0.5 
-        one_hot_output = torch.nn.functional.gumbel_softmax(output + gumbel_noise, tau=temperature, hard=True)
+        gumbel_noise = -torch.empty_like(logits).exponential_().log() * 0.5 
+        one_hot_output = torch.nn.functional.gumbel_softmax(logits + gumbel_noise, tau=temperature, hard=True)
         return one_hot_output, (hidden_and_cell_states_bottom, hidden_and_cell_states_middle, hidden_and_cell_states_top)
       
     def init_zero_state(self):
@@ -70,7 +70,7 @@ class LSTMDiscriminator(nn.Module):
                            num_layers=2,
                            batch_first=True, 
                            bidirectional=True)
-        self.skip_connection_one = nn.Linear(hidden_size * 2, hidden_size)  
+        self.skip_connection_one = nn.Linear(hidden_size * 2, hidden_size)
         self.lstm_middle = nn.LSTM(input_size=hidden_size,
                            hidden_size=hidden_size, 
                            num_layers=2,
